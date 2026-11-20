@@ -4,37 +4,32 @@ import os
 import random
 import re
 import time
-import urllib.error
 import urllib.parse
 import urllib.request
-import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
-from html import unescape
+from html import escape, unescape
 from zoneinfo import ZoneInfo
 
+from playwright.sync_api import sync_playwright
+
 ROMA_TZ = ZoneInfo("Europe/Rome")
+MAX_GIORNI_BANDO = 60
 
 SORGENTI_NAPOLI = [
-    ("Avvisi Generali Comune", "https://www.comune.napoli.it/tipi_notizia/avviso/", "HTML"),
-    ("Comunicati Stampa", "https://www.comune.napoli.it/tipi_notizia/comunicato-stampa/", "HTML"),
-    ("Municipalita 1", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-1/", "HTML"),
-    ("Municipalita 2", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-2/", "HTML"),
-    ("Municipalita 3", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-3/", "HTML"),
-    ("Municipalita 4", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-4/", "HTML"),
-    ("Municipalita 5", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-5/", "HTML"),
-    ("Municipalita 6", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-6/", "HTML"),
-    ("Municipalita 7", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-7/", "HTML"),
-    ("Municipalita 8", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-8/", "HTML"),
-    ("Municipalita 9", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-9/", "HTML"),
-    ("Municipalita 10", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-10/", "HTML"),
+    ("Avvisi Generali Comune", "https://www.comune.napoli.it/tipi_notizia/avviso/"),
+    ("Comunicati Stampa", "https://www.comune.napoli.it/tipi_notizia/comunicato-stampa/"),
+    ("Municipalita 1", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-1/"),
+    ("Municipalita 2", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-2/"),
+    ("Municipalita 3", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-3/"),
+    ("Municipalita 4", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-4/"),
+    ("Municipalita 5", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-5/"),
+    ("Municipalita 6", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-6/"),
+    ("Municipalita 7", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-7/"),
+    ("Municipalita 8", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-8/"),
+    ("Municipalita 9", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-9/"),
+    ("Municipalita 10", "https://www.comune.napoli.it/amministrazione/unita_organizzativa/municipalita-10/"),
 ]
-
-URL_PARACADUTE_GNEWS = (
-    "https://news.google.com/rss/search?q=site:comune.napoli.it+"
-    "(mercatini+OR+fiera+OR+fiere+OR+artigianato+OR+hobbisti+OR+posteggi+OR+ingegno+OR+antiquariato)"
-    "&hl=it&gl=IT&ceid=IT:it"
-)
 
 ESCLUSIONI_FORTI = [
     "concorso pubblico",
@@ -121,7 +116,7 @@ def normalizza_url(url):
 
 
 def normalizza_titolo_chiave(titolo):
-    pulito = re.sub(r"\s*[\|\u2013\u2014]\s*comune di napoli.*$", "", str(titolo or ""), flags=re.IGNORECASE)
+    pulito = re.sub(r"\s*[\|\u2013\u2014-]\s*comune di napoli.*$", "", str(titolo or ""), flags=re.IGNORECASE)
     pulito = re.sub(r"[^a-z0-9\xe0\xe8\xe9\xec\xf2\xf9]+", " ", pulito.lower()).strip()
     return pulito[:90]
 
@@ -144,52 +139,7 @@ def md5_testo(testo):
 
 
 def pausa_cortesia():
-    time.sleep(random.uniform(3.5, 6.0))
-
-
-def scarica_url(url, usa_browser=False):
-    headers = {
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
-    }
-    if usa_browser:
-        parsed = urllib.parse.urlparse(url)
-        origine = f"{parsed.scheme}://{parsed.netloc}/" if parsed.netloc else url
-        headers["User-Agent"] = (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
-        )
-        headers["Referer"] = origine
-        headers["Upgrade-Insecure-Requests"] = "1"
-    else:
-        headers["User-Agent"] = "MonitorBandiNapoli/1.0"
-
-    req = urllib.request.Request(url, headers=headers, method="GET")
-    try:
-        with urllib.request.urlopen(req, timeout=25) as resp:
-            codice = resp.getcode() or 200
-            raw_bytes = resp.read()
-            testo = raw_bytes.decode("utf-8", errors="replace")
-            resp_headers = {k.lower(): v for k, v in resp.headers.items()}
-            return True, codice, testo, resp_headers
-    except urllib.error.HTTPError as e:
-        codice = e.code or 500
-        try:
-            body = e.read().decode("utf-8", errors="replace")
-        except Exception:
-            body = ""
-        return False, codice, body, {}
-    except Exception as e:
-        print(f"Errore rete su {url} {e}")
-        return False, 0, "", {}
-
-
-def scarica_con_tentativi(url):
-    ok, code, body, headers = scarica_url(url, usa_browser=False)
-    if not ok and code in (403, 406, 429):
-        time.sleep(2.5)
-        return scarica_url(url, usa_browser=True)
-    return ok, code, body, headers
+    time.sleep(random.uniform(3.0, 5.5))
 
 
 def ricava_titolo_da_slug(url):
@@ -210,6 +160,20 @@ def supera_pre_filtro(titolo, url):
         if kw in testo:
             return True
     return False
+
+
+def scarica_con_browser(page, url):
+    try:
+        risposta = page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        page.wait_for_timeout(random.randint(1400, 2400))
+        codice = risposta.status if risposta else 0
+        headers = {k.lower(): v for k, v in (risposta.headers or {}).items()} if risposta else {}
+        html = page.content()
+        ok = 200 <= codice < 300
+        return ok, codice, html, headers
+    except Exception as e:
+        print(f"Errore browser su {url}: {e}")
+        return False, 0, "", {}
 
 
 def estrai_notizie_html(html, base_url):
@@ -247,7 +211,7 @@ def estrai_notizie_html(html, base_url):
 
         if titolo and len(titolo) >= 10:
             visti.add(url_norm)
-            risultati.append({"titolo": titolo, "url": url_norm, "descrizione_rss": "", "data_rss": ""})
+            risultati.append({"titolo": titolo, "url": url_norm})
 
     return risultati
 
@@ -333,47 +297,6 @@ def formatta_data_parsata(parsed_tuple):
     return dt_it.strftime("%d/%m/%Y") + " (ora non indicata dal sito)"
 
 
-def estrai_notizie_rss(xml_text, base_url):
-    risultati = []
-    try:
-        root = ET.fromstring(xml_text)
-        channel = root.find("channel")
-        if channel is not None:
-            for item in channel.findall("item"):
-                titolo = pulisci_html(item.findtext("title") or "")
-                link = normalizza_url(urllib.parse.urljoin(base_url, (item.findtext("link") or "").strip()))
-                desc = pulisci_html(item.findtext("description") or "")
-                pub_raw = (item.findtext("pubDate") or "").strip()
-                pub_parsed = parsa_data_flessibile(pub_raw)
-                if link:
-                    risultati.append({
-                        "titolo": titolo,
-                        "url": link,
-                        "descrizione_rss": desc,
-                        "data_rss": formatta_data_parsata(pub_parsed) if pub_parsed else "",
-                    })
-        else:
-            ns = {"atom": "http://www.w3.org/2005/Atom"}
-            for entry in root.findall("atom:entry", ns):
-                titolo = pulisci_html(entry.findtext("atom:title", namespaces=ns) or "")
-                link_el = entry.find("atom:link", ns)
-                href = (link_el.attrib.get("href") if link_el is not None else "") or ""
-                link = normalizza_url(urllib.parse.urljoin(base_url, href.strip()))
-                desc = pulisci_html(entry.findtext("atom:summary", namespaces=ns) or entry.findtext("atom:content", namespaces=ns) or "")
-                pub_raw = (entry.findtext("atom:published", namespaces=ns) or entry.findtext("atom:updated", namespaces=ns) or "").strip()
-                pub_parsed = parsa_data_flessibile(pub_raw)
-                if link:
-                    risultati.append({
-                        "titolo": titolo,
-                        "url": link,
-                        "descrizione_rss": desc,
-                        "data_rss": formatta_data_parsata(pub_parsed) if pub_parsed else "",
-                    })
-    except Exception as e:
-        print(f"Errore parsing RSS {base_url} {e}")
-    return risultati
-
-
 def estrai_meta(html, nome):
     esc = re.escape(nome)
     m1 = re.search(rf'<meta[^>]+(?:property|name)=["\']{esc}["\'][^>]+content=["\']([^"\']+)["\']', html, flags=re.IGNORECASE)
@@ -442,10 +365,11 @@ def estrai_date_pagina(html_completo, blocco_principale, headers):
         formatta_data_parsata(pub_parsed) if pub_parsed else "",
         formatta_data_parsata(mod_parsed) if mod_parsed else "",
         ha_modifica,
+        pub_parsed[0] if pub_parsed else None,
     )
 
 
-def analizza_dettaglio(url, titolo_fallback):
+def analizza_dettaglio(page, url, titolo_fallback):
     if re.search(r"\.pdf(\?.*)?$", url, flags=re.IGNORECASE):
         nome_pdf = urllib.parse.unquote(url.split("?")[0].split("/")[-1] or "Allegato.pdf")
         return {
@@ -457,12 +381,13 @@ def analizza_dettaglio(url, titolo_fallback):
             "pdf_list": [{"nome": nome_pdf, "url": url}],
             "hash": md5_testo(url),
             "data_pub": "",
+            "data_pub_dt": None,
             "data_mod": "",
             "ha_modifica": False,
             "rettifica_titolo": bool(re.search(r"rettific|prorog|riapertura|errata corrige|integrazion", titolo_fallback or nome_pdf, flags=re.IGNORECASE)),
         }
 
-    ok, code, html, headers = scarica_con_tentativi(url)
+    ok, code, html, headers = scarica_con_browser(page, url)
     if not ok:
         return {"ok": False, "code": code}
 
@@ -475,7 +400,7 @@ def analizza_dettaglio(url, titolo_fallback):
     else:
         m_t = re.search(r"<title[^>]*>([\s\S]*?)</title>", html, flags=re.IGNORECASE)
         if m_t:
-            t_p = re.sub(r"\s*[\|\u2013\u2014]\s*Comune di.*$", "", pulisci_html(m_t.group(1)), flags=re.IGNORECASE).strip()
+            t_p = re.sub(r"\s*[\|\u2013\u2014-]\s*Comune di.*$", "", pulisci_html(m_t.group(1)), flags=re.IGNORECASE).strip()
             if len(t_p) >= 10:
                 titolo = t_p
 
@@ -488,7 +413,7 @@ def analizza_dettaglio(url, titolo_fallback):
     if m_corr and m_corr.start() > 300:
         blocco = blocco[: m_corr.start()]
 
-    data_pub, data_mod, ha_modifica = estrai_date_pagina(html, blocco, headers)
+    data_pub, data_mod, ha_modifica, data_pub_dt = estrai_date_pagina(html, blocco, headers)
 
     pdf_list = []
     pdf_visti = set()
@@ -516,6 +441,7 @@ def analizza_dettaglio(url, titolo_fallback):
         "pdf_list": pdf_list,
         "hash": impronta,
         "data_pub": data_pub,
+        "data_pub_dt": data_pub_dt,
         "data_mod": data_mod,
         "ha_modifica": ha_modifica,
         "rettifica_titolo": bool(re.search(r"rettific|prorog|riapertura|errata corrige|integrazion", titolo, flags=re.IGNORECASE)),
@@ -574,80 +500,92 @@ def invia_telegram(token, chat_id, testo_html):
         with urllib.request.urlopen(req, timeout=20) as resp:
             return 200 <= (resp.getcode() or 200) < 300
     except Exception as e:
-        print(f"Errore invio Telegram {e}")
+        print(f"Errore invio Telegram: {e}")
         return False
 
 
 def formatta_notifica_nuovo(rec):
     righe = [
-        f"<b>{unescape(rec['tipo'])}</b>",
-        f"<b>Ente</b> Napoli (NA) {rec['sezione']}",
+        f"<b>{escape(rec['tipo'])}</b>",
+        f"<b>Ente</b> Napoli (NA) {escape(rec['sezione'])}",
         "",
-        f"<b>{unescape(rec['titolo'])}</b>",
+        f"<b>{escape(rec['titolo'])}</b>",
         "",
-        f"<b>Pubblicazione</b> {rec['dataPubblicazione']}",
-        f"<b>Rilevato dal bot</b> {rec['dataRilevamento']}",
-        f"<b>Ultima modifica o rettifica</b> {rec['ultimaModifica']}",
-        f"<b>Totale modifiche o rettifiche</b> {rec['numModifiche']}",
+        f"<b>Pubblicazione</b> {escape(rec['dataPubblicazione'])}",
+        f"<b>Rilevato dal bot</b> {escape(rec['dataRilevamento'])}",
+        f"<b>Ultima modifica o rettifica</b> {escape(rec['ultimaModifica'])}",
+        f"<b>Totale modifiche o rettifiche</b> {escape(str(rec['numModifiche']))}",
     ]
     if rec.get("cronologiaModifiche"):
         righe.append("")
         righe.append("<b>Cronologia modifiche e rettifiche</b>")
         for voce in rec["cronologiaModifiche"].split(" || "):
-            righe.append(voce)
+            righe.append(escape(voce))
     if rec.get("scadenza"):
         righe.append("")
-        righe.append(f"<b>Scadenza</b> {rec['scadenza']}")
+        righe.append(f"<b>Scadenza</b> {escape(rec['scadenza'])}")
     if rec.get("sintesi"):
         righe.append("")
-        righe.append(rec["sintesi"])
+        righe.append(escape(rec["sintesi"]))
     if rec.get("pdfList"):
         righe.append("")
         righe.append(f"<b>Allegati PDF rilevati ({len(rec['pdfList'])})</b>")
         for p in rec["pdfList"][:5]:
-            righe.append(f"\u2022 {p['nome']}")
+            righe.append(f"\u2022 {escape(p['nome'])}")
     righe.append("")
-    righe.append(f'<a href="{rec["url"]}">Apri la pagina ufficiale del bando</a>')
+    righe.append(f'<a href="{escape(rec["url"])}">Apri la pagina ufficiale del bando</a>')
     return "\n".join(righe)
 
 
 def formatta_notifica_aggiornamento(rec, motivo):
     righe = [
         "<b>MODIFICA O RETTIFICA SU BANDO SEGUITO</b>",
-        f"<b>Ente</b> Napoli (NA) {rec['sezione']}",
+        f"<b>Ente</b> Napoli (NA) {escape(rec['sezione'])}",
         "",
-        f"<b>{unescape(rec['titolo'])}</b>",
+        f"<b>{escape(rec['titolo'])}</b>",
         "",
-        f"<b>Pubblicazione originale</b> {rec['dataPubblicazione']}",
-        f"<b>Ultima modifica o rettifica</b> {rec['ultimaModifica']}",
-        f"<b>Totale modifiche o rettifiche</b> {rec['numModifiche']}",
-        f"<b>Novita rilevata adesso</b> {motivo}",
+        f"<b>Pubblicazione originale</b> {escape(rec['dataPubblicazione'])}",
+        f"<b>Ultima modifica o rettifica</b> {escape(rec['ultimaModifica'])}",
+        f"<b>Totale modifiche o rettifiche</b> {escape(str(rec['numModifiche']))}",
+        f"<b>Novita rilevata adesso</b> {escape(motivo)}",
     ]
     if rec.get("cronologiaModifiche"):
         righe.append("")
         righe.append("<b>Cronologia completa modifiche e rettifiche</b>")
         for voce in rec["cronologiaModifiche"].split(" || "):
-            righe.append(voce)
+            righe.append(escape(voce))
     righe.append("")
-    righe.append(f'<a href="{rec["url"]}">Apri la pagina aggiornata</a>')
+    righe.append(f'<a href="{escape(rec["url"])}">Apri la pagina aggiornata</a>')
     return "\n".join(righe)
 
 
-def carica_stato():
+def carica_stato_pulito():
+    bandi_puliti = []
     if os.path.exists("bandi.json"):
         try:
             with open("bandi.json", "r", encoding="utf-8") as f:
                 dati = json.load(f)
                 if isinstance(dati, dict) and isinstance(dati.get("bandi"), list):
-                    return dati
+                    limite = adesso_roma() - timedelta(days=MAX_GIORNI_BANDO)
+                    for b in dati["bandi"]:
+                        url_b = str(b.get("url", ""))
+                        stato_b = str(b.get("stato", ""))
+                        sez_b = str(b.get("sezione", ""))
+                        # Rimuove i vecchi risultati provenienti dal paracadute Google News
+                        if "news.google.com" in url_b or "GNEWS" in stato_b.upper() or "Google News" in sez_b:
+                            continue
+                        pub_parsed = parsa_data_flessibile(b.get("dataPubblicazione", "").split("(")[0].strip())
+                        if pub_parsed and pub_parsed[0] < limite:
+                            continue
+                        bandi_puliti.append(b)
         except Exception as e:
-            print(f"Errore lettura bandi.json {e}")
+            print(f"Errore lettura bandi.json: {e}")
     return {
         "ok": True,
         "generatoIl": formatta_dt(adesso_roma()),
         "ultimoControlloSistema": "",
-        "totale": 0,
-        "bandi": [],
+        "totale": len(bandi_puliti),
+        "bandi": bandi_puliti,
     }
 
 
@@ -658,233 +596,236 @@ def salva_stato(stato):
         json.dump(stato, f, ensure_ascii=False, indent=2)
 
 
-def esegui_paracadute_gnews(stato, visti_url, visti_titoli, token, chat_id):
-    nuovi_trovati = 0
-    ok, _, xml_body, _ = scarica_url(URL_PARACADUTE_GNEWS, usa_browser=False)
-    if not ok or not xml_body:
-        return 0
-    items = estrai_notizie_rss(xml_body, URL_PARACADUTE_GNEWS)
-    for item in items:
-        titolo_pulito = re.sub(r"\s*[\|\u2013\u2014]\s*Comune di Napoli.*$", "", item["titolo"], flags=re.IGNORECASE).strip()
-        url_norm = normalizza_url(item["url"])
-        chiave_tit = normalizza_titolo_chiave(titolo_pulito)
-        if not url_norm or url_norm in visti_url or (chiave_tit and chiave_tit in visti_titoli):
-            continue
-        if not supera_pre_filtro(titolo_pulito, url_norm):
-            continue
-        val = valuta_bando(titolo_pulito, item.get("descrizione_rss") or titolo_pulito, [], "Paracadute Google News")
-        if not val["pertinente"]:
-            continue
-        ora_str = formatta_dt(adesso_roma())
-        rettifica = bool(re.search(r"rettific|prorog|riapertura|errata corrige|integrazion", titolo_pulito, flags=re.IGNORECASE))
-        data_pub = item.get("data_rss") or f"Rilevato il {ora_str}"
-        rec = {
-            "dataRilevamento": ora_str,
-            "provincia": "NA",
-            "comune": "Napoli",
-            "sezione": val["zona"],
-            "titolo": titolo_pulito,
-            "url": url_norm,
-            "tipo": val["tipo"],
-            "scadenza": val["scadenza"],
-            "sintesi": val["sintesi"],
-            "numPdf": 0,
-            "elencoPdf": "",
-            "pdfList": [],
-            "hash": md5_testo(titolo_pulito + "||" + (item.get("descrizione_rss") or titolo_pulito)),
-            "stato": "NUOVO (GNEWS)",
-            "dataPubblicazione": data_pub,
-            "ultimaModifica": data_pub if rettifica else "Nessuna modifica rilevata",
-            "numModifiche": 1 if rettifica else 0,
-            "cronologiaModifiche": f"1) {data_pub} - Avviso pubblicato come rettifica, proroga o integrazione" if rettifica else "",
-        }
-        stato["bandi"].insert(0, rec)
-        visti_url.add(url_norm)
-        if chiave_tit:
-            visti_titoli.add(chiave_tit)
-        nuovi_trovati += 1
-        invia_telegram(token, chat_id, formatta_notifica_nuovo(rec))
-        time.sleep(0.5)
-    return nuovi_trovati
-
-
 def main():
     token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
     chat_id = os.environ.get("TELEGRAM_CHAT_ID", "").strip()
 
-    stato = carica_stato()
-    bandi = stato.get("bandi", [])
-    indice_per_url = {}
+    stato = carica_stato_pulito()
     visti_url = set()
     visti_titoli = set()
 
-    for idx, b in enumerate(bandi):
+    for b in stato["bandi"]:
         u = normalizza_url(b.get("url", ""))
         t = normalizza_titolo_chiave(b.get("titolo", ""))
         if u:
-            indice_per_url[u] = idx
             visti_url.add(u)
         if t:
             visti_titoli.add(t)
 
+    limite_data = adesso_roma() - timedelta(days=MAX_GIORNI_BANDO)
+
     sorgenti_lette = 0
     nuovi_pertinenti = 0
+    scartati_vecchi = 0
     aggiornamenti = 0
     errori = 0
-    gnews_gia_usato = False
+    primo_codice_http = None
 
-    for idx_sorg, (sezione, url_sorg, _) in enumerate(SORGENTI_NAPOLI):
-        if idx_sorg > 0:
-            pausa_cortesia()
-
-        ok, code, html, _ = scarica_con_tentativi(url_sorg)
-        if not ok:
-            errori += 1
-            print(f"Impossibile leggere {sezione} HTTP {code}")
-            if code in (403, 429) and not gnews_gia_usato:
-                gnews_gia_usato = True
-                nuovi_g = esegui_paracadute_gnews(stato, visti_url, visti_titoli, token, chat_id)
-                nuovi_pertinenti += nuovi_g
-            continue
-
-        sorgenti_lette += 1
-        candidati = estrai_notizie_html(html, url_sorg)
-
-        for item in candidati:
-            url_norm = normalizza_url(item["url"])
-            chiave_tit = normalizza_titolo_chiave(item["titolo"])
-            if not url_norm or url_norm in visti_url or (chiave_tit and chiave_tit in visti_titoli):
-                continue
-            if not supera_pre_filtro(item["titolo"], url_norm):
-                continue
-
-            pausa_cortesia()
-            det = analizza_dettaglio(url_norm, item["titolo"])
-            if not det["ok"]:
-                errori += 1
-                continue
-
-            chiave_reale = normalizza_titolo_chiave(det["titolo"])
-            if chiave_reale and chiave_reale in visti_titoli:
-                continue
-
-            val = valuta_bando(det["titolo"], det["testo"], det["pdf_list"], sezione)
-            if not val["pertinente"]:
-                continue
-
-            ora_str = formatta_dt(adesso_roma())
-            data_pub = det["data_pub"] or f"Non indicata dal sito (rilevato il {ora_str})"
-            num_mod = 0
-            ultima_mod = "Nessuna modifica rilevata"
-            cronologia = ""
-
-            if det["ha_modifica"] and det["data_mod"]:
-                num_mod = 1
-                ultima_mod = det["data_mod"]
-                cronologia = f"1) {det['data_mod']} - Aggiornamento o rettifica gia segnalata sul sito"
-            elif det["rettifica_titolo"]:
-                num_mod = 1
-                ultima_mod = det["data_mod"] or det["data_pub"] or ora_str
-                cronologia = f"1) {ultima_mod} - Avviso pubblicato come rettifica, proroga o integrazione"
-
-            rec = {
-                "dataRilevamento": ora_str,
-                "provincia": "NA",
-                "comune": "Napoli",
-                "sezione": val["zona"],
-                "titolo": det["titolo"],
-                "url": url_norm,
-                "tipo": val["tipo"],
-                "scadenza": val["scadenza"],
-                "sintesi": val["sintesi"],
-                "numPdf": len(det["pdf_list"]),
-                "elencoPdf": " | ".join(p["nome"] for p in det["pdf_list"]),
-                "pdfList": det["pdf_list"],
-                "hash": det["hash"],
-                "stato": "NUOVO",
-                "dataPubblicazione": data_pub,
-                "ultimaModifica": ultima_mod,
-                "numModifiche": num_mod,
-                "cronologiaModifiche": cronologia,
-            }
-
-            stato["bandi"].insert(0, rec)
-            visti_url.add(url_norm)
-            if chiave_tit:
-                visti_titoli.add(chiave_tit)
-            if chiave_reale:
-                visti_titoli.add(chiave_reale)
-
-            nuovi_pertinenti += 1
-            invia_telegram(token, chat_id, formatta_notifica_nuovo(rec))
-            time.sleep(0.5)
-
-    # Ricontrolla fino a 6 bandi diretti gia salvati per rilevare modifiche, rettifiche o nuovi PDF
-    ricontrollati = 0
-    for b in stato["bandi"]:
-        if ricontrollati >= 6:
-            break
-        u = normalizza_url(b.get("url", ""))
-        if not u or "news.google.com" in u:
-            continue
-        ricontrollati += 1
-        pausa_cortesia()
-        det_att = analizza_dettaglio(u, b.get("titolo", ""))
-        if not det_att["ok"]:
-            continue
-
-        ora_str = formatta_dt(adesso_roma())
-        if not b.get("dataPubblicazione"):
-            b["dataPubblicazione"] = det_att["data_pub"] or f"Rilevato il {b.get('dataRilevamento') or ora_str}"
-
-        vecchi_pdf = {p.get("nome") for p in b.get("pdfList", []) if p.get("nome")}
-        nuovi_pdf = [p for p in det_att["pdf_list"] if p["nome"] not in vecchi_pdf]
-        hash_cambiato = det_att["hash"] != b.get("hash", "")
-        data_mod_nuova = bool(
-            det_att["data_mod"]
-            and det_att["data_mod"] != b.get("ultimaModifica", "")
-            and det_att["data_mod"] != b.get("dataPubblicazione", "")
-            and det_att["ha_modifica"]
+    with sync_playwright() as p:
+        browser = p.chromium.launch(
+            headless=True,
+            args=[
+                "--disable-blink-features=AutomationControlled",
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+            ],
         )
+        context = browser.new_context(
+            locale="it-IT",
+            timezone_id="Europe/Rome",
+            viewport={"width": 1366, "height": 768},
+            user_agent=(
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/131.0.0.0 Safari/537.36"
+            ),
+            extra_http_headers={
+                "Accept-Language": "it-IT,it;q=0.9,en-US;q=0.8,en;q=0.7",
+            },
+        )
+        context.add_init_script(
+            "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
+        )
+        page = context.new_page()
 
-        if nuovi_pdf or hash_cambiato or data_mod_nuova:
-            aggiornamenti += 1
-            num_mod = int(b.get("numModifiche") or 0) + 1
-            if nuovi_pdf:
-                nomi_n = ", ".join(p["nome"] for p in nuovi_pdf[:3])
-                motivo = f"Nuovi allegati PDF ({nomi_n})"
-            elif data_mod_nuova and not hash_cambiato:
-                motivo = "Data di modifica aggiornata sul sito"
-            else:
-                motivo = "Modifica o rettifica del testo nella pagina"
+        # Passaggio naturale dalla home per raccogliere eventuali cookie di sessione
+        ok_home, code_home, _, _ = scarica_con_browser(page, "https://www.comune.napoli.it/")
+        print(f"Home Comune di Napoli HTTP {code_home} (ok={ok_home})")
+        pausa_cortesia()
 
-            ts_mod = (
-                f"{det_att['data_mod']} (rilevata il {ora_str})"
-                if (det_att["data_mod"] and det_att["data_mod"] != b.get("ultimaModifica", ""))
-                else ora_str
-            )
-            voce = f"{num_mod}) {ts_mod} - {motivo}"
-            cron_prec = b.get("cronologiaModifiche", "")
-            b["numPdf"] = len(det_att["pdf_list"])
-            b["elencoPdf"] = " | ".join(p["nome"] for p in det_att["pdf_list"])
-            b["pdfList"] = det_att["pdf_list"]
-            b["hash"] = det_att["hash"]
-            b["ultimaModifica"] = ts_mod
-            b["numModifiche"] = num_mod
-            b["cronologiaModifiche"] = f"{cron_prec} || {voce}" if cron_prec else voce
-            b["stato"] = f"MODIFICATO ({num_mod})"
+        for idx_sorg, (sezione, url_sorg) in enumerate(SORGENTI_NAPOLI):
+            if idx_sorg > 0:
+                pausa_cortesia()
 
-            invia_telegram(token, chat_id, formatta_notifica_aggiornamento(b, motivo))
-            time.sleep(0.5)
+            ok, code, html, _ = scarica_con_browser(page, url_sorg)
+            if primo_codice_http is None:
+                primo_codice_http = code
+
+            if not ok:
+                errori += 1
+                print(f"Blocco o errore su {sezione}: HTTP {code}")
+                if code in (403, 429) and idx_sorg == 0:
+                    print("Portale bloccato anche con Chrome reale. Interrompo il giro senza insistere.")
+                    break
+                continue
+
+            sorgenti_lette += 1
+            candidati = estrai_notizie_html(html, url_sorg)
+            print(f"Letta {sezione}: {len(candidati)} link trovati")
+
+            for item in candidati:
+                url_norm = normalizza_url(item["url"])
+                chiave_tit = normalizza_titolo_chiave(item["titolo"])
+                if not url_norm or url_norm in visti_url or (chiave_tit and chiave_tit in visti_titoli):
+                    continue
+                if not supera_pre_filtro(item["titolo"], url_norm):
+                    continue
+
+                pausa_cortesia()
+                det = analizza_dettaglio(page, url_norm, item["titolo"])
+                if not det["ok"]:
+                    errori += 1
+                    if det["code"] in (403, 429):
+                        break
+                    continue
+
+                chiave_reale = normalizza_titolo_chiave(det["titolo"])
+                if chiave_reale and chiave_reale in visti_titoli:
+                    continue
+
+                # Ignora bandi pubblicati piu di MAX_GIORNI_BANDO giorni fa
+                if det["data_pub_dt"] and det["data_pub_dt"] < limite_data:
+                    scartati_vecchi += 1
+                    visti_url.add(url_norm)
+                    if chiave_reale:
+                        visti_titoli.add(chiave_reale)
+                    continue
+
+                val = valuta_bando(det["titolo"], det["testo"], det["pdf_list"], sezione)
+                if not val["pertinente"]:
+                    continue
+
+                ora_str = formatta_dt(adesso_roma())
+                data_pub = det["data_pub"] or f"Non indicata dal sito (rilevato il {ora_str})"
+                num_mod = 0
+                ultima_mod = "Nessuna modifica rilevata"
+                cronologia = ""
+
+                if det["ha_modifica"] and det["data_mod"]:
+                    num_mod = 1
+                    ultima_mod = det["data_mod"]
+                    cronologia = f"1) {det['data_mod']} - Aggiornamento o rettifica gia segnalata sul sito"
+                elif det["rettifica_titolo"]:
+                    num_mod = 1
+                    ultima_mod = det["data_mod"] or det["data_pub"] or ora_str
+                    cronologia = f"1) {ultima_mod} - Avviso pubblicato come rettifica, proroga o integrazione"
+
+                rec = {
+                    "dataRilevamento": ora_str,
+                    "provincia": "NA",
+                    "comune": "Napoli",
+                    "sezione": val["zona"],
+                    "titolo": det["titolo"],
+                    "url": url_norm,
+                    "tipo": val["tipo"],
+                    "scadenza": val["scadenza"],
+                    "sintesi": val["sintesi"],
+                    "numPdf": len(det["pdf_list"]),
+                    "elencoPdf": " | ".join(p["nome"] for p in det["pdf_list"]),
+                    "pdfList": det["pdf_list"],
+                    "hash": det["hash"],
+                    "stato": "NUOVO",
+                    "dataPubblicazione": data_pub,
+                    "ultimaModifica": ultima_mod,
+                    "numModifiche": num_mod,
+                    "cronologiaModifiche": cronologia,
+                }
+
+                stato["bandi"].insert(0, rec)
+                visti_url.add(url_norm)
+                if chiave_tit:
+                    visti_titoli.add(chiave_tit)
+                if chiave_reale:
+                    visti_titoli.add(chiave_reale)
+
+                nuovi_pertinenti += 1
+                invia_telegram(token, chat_id, formatta_notifica_nuovo(rec))
+                time.sleep(0.5)
+
+        # Ricontrolla fino a 8 bandi diretti gia salvati per rilevare graduatorie, modifiche o nuovi PDF
+        if sorgenti_lette > 0:
+            ricontrollati = 0
+            for b in stato["bandi"]:
+                if ricontrollati >= 8:
+                    break
+                u = normalizza_url(b.get("url", ""))
+                if not u:
+                    continue
+                ricontrollati += 1
+                pausa_cortesia()
+                det_att = analizza_dettaglio(page, u, b.get("titolo", ""))
+                if not det_att["ok"]:
+                    if det_att["code"] in (403, 429):
+                        break
+                    continue
+
+                ora_str = formatta_dt(adesso_roma())
+                if not b.get("dataPubblicazione"):
+                    b["dataPubblicazione"] = det_att["data_pub"] or f"Rilevato il {b.get('dataRilevamento') or ora_str}"
+
+                vecchi_pdf = {p.get("nome") for p in b.get("pdfList", []) if p.get("nome")}
+                nuovi_pdf = [p for p in det_att["pdf_list"] if p["nome"] not in vecchi_pdf]
+                hash_cambiato = det_att["hash"] != b.get("hash", "")
+                data_mod_nuova = bool(
+                    det_att["data_mod"]
+                    and det_att["data_mod"] != b.get("ultimaModifica", "")
+                    and det_att["data_mod"] != b.get("dataPubblicazione", "")
+                    and det_att["ha_modifica"]
+                )
+
+                if nuovi_pdf or hash_cambiato or data_mod_nuova:
+                    aggiornamenti += 1
+                    num_mod = int(b.get("numModifiche") or 0) + 1
+                    if nuovi_pdf:
+                        nomi_n = ", ".join(p["nome"] for p in nuovi_pdf[:3])
+                        motivo = f"Nuovi allegati PDF ({nomi_n})"
+                    elif data_mod_nuova and not hash_cambiato:
+                        motivo = "Data di modifica aggiornata sul sito"
+                    else:
+                        motivo = "Modifica o rettifica del testo nella pagina"
+
+                    ts_mod = (
+                        f"{det_att['data_mod']} (rilevata il {ora_str})"
+                        if (det_att["data_mod"] and det_att["data_mod"] != b.get("ultimaModifica", ""))
+                        else ora_str
+                    )
+                    voce = f"{num_mod}) {ts_mod} - {motivo}"
+                    cron_prec = b.get("cronologiaModifiche", "")
+                    b["numPdf"] = len(det_att["pdf_list"])
+                    b["elencoPdf"] = " | ".join(p["nome"] for p in det_att["pdf_list"])
+                    b["pdfList"] = det_att["pdf_list"]
+                    b["hash"] = det_att["hash"]
+                    b["ultimaModifica"] = ts_mod
+                    b["numModifiche"] = num_mod
+                    b["cronologiaModifiche"] = f"{cron_prec} || {voce}" if cron_prec else voce
+                    b["stato"] = f"MODIFICATO ({num_mod})"
+
+                    invia_telegram(token, chat_id, formatta_notifica_aggiornamento(b, motivo))
+                    time.sleep(0.5)
+
+        browser.close()
 
     stato["ultimoControlloSistema"] = formatta_dt(adesso_roma())
     salva_stato(stato)
 
     riepilogo = (
-        f"<b>Controllo GitHub completato</b> ({stato['ultimoControlloSistema']})\n\n"
-        f"<b>Sorgenti lette</b> {sorgenti_lette}\n"
-        f"<b>Nuovi bandi pertinenti</b> {nuovi_pertinenti}\n"
-        f"<b>Modifiche o rettifiche rilevate</b> {aggiornamenti}\n"
+        f"<b>Test diretto Chrome su Comune di Napoli</b> ({stato['ultimoControlloSistema']})\n\n"
+        f"<b>Risposta Home</b> HTTP {code_home}\n"
+        f"<b>Risposta prima pagina Avvisi</b> HTTP {primo_codice_http}\n"
+        f"<b>Sorgenti lette direttamente</b> {sorgenti_lette} su {len(SORGENTI_NAPOLI)}\n"
+        f"<b>Nuovi bandi recenti (ultimi {MAX_GIORNI_BANDO} giorni)</b> {nuovi_pertinenti}\n"
+        f"<b>Avvisi vecchi ignorati</b> {scartati_vecchi}\n"
+        f"<b>Modifiche rilevate</b> {aggiornamenti}\n"
         f"<b>Errori o blocchi</b> {errori}"
     )
     invia_telegram(token, chat_id, riepilogo)
