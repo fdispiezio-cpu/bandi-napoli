@@ -20,7 +20,12 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Esegui controllo bandi
+      - name: Installa Playwright e Chrome
+        run: |
+          pip install playwright
+          playwright install --with-deps chromium
+
+      - name: Esegui controllo bandi diretto
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -30,8 +35,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add bandi.json
-          if ! git diff --staged --quiet; then
-            git commit -m "Aggiorna bandi.json"
-            git push
+          if [ -f bandi.json ]; then
+            git add bandi.json
+            if ! git diff --staged --quiet; then
+              git commit -m "Aggiorna bandi.json"
+              git push
+            fi
           fi
