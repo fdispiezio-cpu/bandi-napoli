@@ -1,7 +1,241 @@
 {
   "ok": true,
-  "generatoIl": "22/11/2026 19.21",
-  "ultimoControlloSistema": "22/11/2026 19.21",
-  "totale": 0,
-  "bandi": []
+  "generatoIl": "23/11/2026 23.36",
+  "ultimoControlloSistema": "23/11/2026 23.36",
+  "totale": 5,
+  "bandi": [
+    {
+      "dataRilevamento": "23/11/2026 23.36",
+      "provincia": "NA",
+      "comune": "Napoli",
+      "sezione": "Municipalita 10",
+      "titolo": "Avviso Pubblico per l’assegnazione temporanea di n. 33 posteggi in occasione delle manifestazioni “Fiera di Natale” e “Aspettando la Befana”, per l’esposizione e la vendita da parte di soggetti professionisti del commercio da svolgersi sul territorio della Municipalità 10 nei giorni 5 e 6 dicembre 2026, 12 e 13 dicembre 2026 e 5 gennaio 2027",
+      "url": "https://www.comune.napoli.it/novita/avviso-pubblico-per-lassegnazione-di-n-33-posteggi-in-occasione-delle-manifestazioni-fiera-di-natale-e-aspettando-la-befana-da-svolgersi-in-municipalita-10",
+      "tipo": "Proroga o Rettifica",
+      "scadenza": "Scadenza presentazione domande: ore 12:00 del 16 novembre 2026 (orario rettificato) Data pubblicaz",
+      "sintesi": "Avviso Pubblico per l’assegnazione temporanea di n. 33 posteggi in occasione delle manifestazioni “Fiera di Natale” e “Aspettando la Befana”, per l’esposizione e la vendita da parte di soggetti professionisti del commercio da svolgersi sul...",
+      "numPdf": 6,
+      "elencoPdf": "Disposizione Dirigenziale n. 76 del 06/11/2026 - Approvazione Avviso Pubblico .PDF | Avviso Pubblico .PDF | Dichiarazione sostitutiva atto di notorietà .PDF | Mod. A .PDF | Patto d'Integrità .PDF | Planimetria dei siti .PDF",
+      "pdfList": [
+        {
+          "nome": "Disposizione Dirigenziale n. 76 del 06/11/2026 - Approvazione Avviso Pubblico .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/I1601_06112026_76_signed.pdf"
+        },
+        {
+          "nome": "Avviso Pubblico .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Avviso-Pubblico_signed.pdf"
+        },
+        {
+          "nome": "Dichiarazione sostitutiva atto di notorietà .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Dichiarazione_signed.pdf"
+        },
+        {
+          "nome": "Mod. A .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD.-A_signed.pdf"
+        },
+        {
+          "nome": "Patto d'Integrità .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Patto-dintegrita_signed.pdf"
+        },
+        {
+          "nome": "Planimetria dei siti .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Planimetria-dei-siti_signed.pdf"
+        }
+      ],
+      "hash": "f7738566c38cd332a45c318dff218d47",
+      "stato": "NUOVO",
+      "dataPubblicazione": "06/11/2026 16.35",
+      "ultimaModifica": "10/11/2026 09.25",
+      "numModifiche": 1,
+      "cronologiaModifiche": "1) 10/11/2026 09.25 - Aggiornamento o rettifica gia segnalata sul sito"
+    },
+    {
+      "dataRilevamento": "23/11/2026 23.35",
+      "provincia": "NA",
+      "comune": "Napoli",
+      "sezione": "Municipalita 5",
+      "titolo": "Municipalità 5 – Avviso pubblico per manifestazione di interesse finalizzata alla realizzazione di un mercatino sociale il 6 dicembre 2026",
+      "url": "https://www.comune.napoli.it/novita/municipalita-5-avviso-pubblico-per-manifestazione-di-interesse-finalizzata-alla-realizzazione-di-un-mercatino-sociale-il-6-dicembre-2026",
+      "tipo": "Manifestazione di Interesse",
+      "scadenza": "entro le ore 9:00 del giorno 25 novembre 2025 Data pubblicazione: 13 Novembre 2026 Data scadenza: 25 N",
+      "sintesi": "Municipalità 5 – Avviso pubblico per manifestazione di interesse finalizzata alla realizzazione di un mercatino sociale il 6 dicembre 2026 Dettagli della notizia Le domande dovranno pervenire entro le ore 9:00 del giorno 25 novembre 2025 Da...",
+      "numPdf": 4,
+      "elencoPdf": "Disposizione dirigenziale n. I1551/2026/531 del 12/11/2026 - Approvazione avviso .PDF | Avviso con allegati (Modulo istanza di partecipazione ALL. A; Modulo autodichiarativo ALL. B; Patto d'Integrità) .PDF | Modulo dichiarazione Programma 100 – Regolarità tributaria .PDF | Planimetria .PDF",
+      "pdfList": [
+        {
+          "nome": "Disposizione dirigenziale n. I1551/2026/531 del 12/11/2026 - Approvazione avviso .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/I1551_12112026_531_-approvazione-Avviso-signed.pdf"
+        },
+        {
+          "nome": "Avviso con allegati (Modulo istanza di partecipazione ALL. A; Modulo autodichiarativo ALL. B; Patto d'Integrità) .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/avviso_mercatino-sociale-con-allegati-signed.pdf"
+        },
+        {
+          "nome": "Modulo dichiarazione Programma 100 – Regolarità tributaria .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/8_Programma_100-signed-1.pdf"
+        },
+        {
+          "nome": "Planimetria .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/planimetria-signed.pdf"
+        }
+      ],
+      "hash": "6dc7bb05e7cfe0876b734371e1605cb2",
+      "stato": "NUOVO",
+      "dataPubblicazione": "13/11/2026 15.03",
+      "ultimaModifica": "Nessuna modifica rilevata",
+      "numModifiche": 0,
+      "cronologiaModifiche": ""
+    },
+    {
+      "dataRilevamento": "23/11/2026 23.35",
+      "provincia": "NA",
+      "comune": "Napoli",
+      "sezione": "Municipalita 2",
+      "titolo": "Bando Pubblico per la concessione temporanea di n. 109 posteggi, nell’ambito della manifestazione “Fiere di Natale 2026” che si svolgerà sul territorio della Municipalità 2",
+      "url": "https://www.comune.napoli.it/novita/bando-pubblico-per-la-concessione-temporanea-di-n-109-posteggi-nellambito-della-manifestazione-fiere-di-natale-2026-che-si-svolgera-sul-territorio-della-municipalita-2",
+      "tipo": "Graduatoria o Esiti",
+      "scadenza": "scadenza: 18 Novembre 2025 fino alle 20:00 Tempo di lettura: 1 min Condividi Facebook Twitter Link",
+      "sintesi": "Bando Pubblico per la concessione temporanea di n. 109 posteggi, nell’ambito della manifestazione “Fiere di Natale 2026” che si svolgerà sul territorio della Municipalità 2 Dettagli della notizia 20 novembre 2026 - Pubblicate le graduatorie...",
+      "numPdf": 12,
+      "elencoPdf": "Disposizione Dirigenziale n. 116 del 05/11/2026 - Fiere di Natale 2026 .PDF | Bando Pubblico - Fiere di Natale 2026 .PDF | Istanza singola - Fiere di Natale 2026 .PDF | Istanza collettiva - Fiere di Natale 2026 .PDF | Riepilogo pagamenti - Fiere di Natale 2026 .PDF | Planimetrie - Fiere di Natale 2026 .PDF | Disposizione Dirigenziale n. 131 del 20/11/2026 - Approvazione graduatorie definitive .PDF | Graduatoria - Via Diaz .PDF | Graduatoria - Piazza Dante .PDF | Graduatoria - Piazza Salvo D'Acquisto .PDF | Esclusione dalla procedura .PDF | Avviso - Convocazione per scelta posteggi e istruzioni rilascio concessioni .PDF",
+      "pdfList": [
+        {
+          "nome": "Disposizione Dirigenziale n. 116 del 05/11/2026 - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Disposizione-Dirigenziale-Bando-Natale-2026.pdf"
+        },
+        {
+          "nome": "Bando Pubblico - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Bando-Pubblico-Natale-2026.pdf"
+        },
+        {
+          "nome": "Istanza singola - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Istanza-singola-Natale-2026.pdf"
+        },
+        {
+          "nome": "Istanza collettiva - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Istanza-collettiva-Natale-2026.pdf"
+        },
+        {
+          "nome": "Riepilogo pagamenti - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Riepilogo-pagamenti-Natale-2026.pdf"
+        },
+        {
+          "nome": "Planimetrie - Fiere di Natale 2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Planimetrie-Natale-2026.pdf"
+        },
+        {
+          "nome": "Disposizione Dirigenziale n. 131 del 20/11/2026 - Approvazione graduatorie definitive .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Disposizione-approvazione-graduatorie.pdf"
+        },
+        {
+          "nome": "Graduatoria - Via Diaz .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Graduatorie-via-Diaz-Fiere-Natale-2026-signed.pdf"
+        },
+        {
+          "nome": "Graduatoria - Piazza Dante .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Graduatorie-piazza-Dante-Fiere-Natale-2026-signed.pdf"
+        },
+        {
+          "nome": "Graduatoria - Piazza Salvo D'Acquisto .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Graduatorie-piazza-DAcquisto-Fiere-Natale-2026-signed.pdf"
+        },
+        {
+          "nome": "Esclusione dalla procedura .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Esclusione-BAR-MARIE-signed.pdf"
+        },
+        {
+          "nome": "Avviso - Convocazione per scelta posteggi e istruzioni rilascio concessioni .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/AVVISO-Convocazione-per-scelta-posteggi-e-istruzioni-rilascio-concessioni-signed.pdf"
+        }
+      ],
+      "hash": "6056dd284b4fdf3a80ef188dce8b2cae",
+      "stato": "NUOVO",
+      "dataPubblicazione": "20/11/2026 14.06",
+      "ultimaModifica": "20/11/2026 15.43",
+      "numModifiche": 1,
+      "cronologiaModifiche": "1) 20/11/2026 15.43 - Aggiornamento o rettifica gia segnalata sul sito"
+    },
+    {
+      "dataRilevamento": "23/11/2026 23.35",
+      "provincia": "NA",
+      "comune": "Napoli",
+      "sezione": "Municipalita 6",
+      "titolo": "Dispositivo di circolazione temporaneo in via Pietrarsa per i mercatini di Natale 2026",
+      "url": "https://www.comune.napoli.it/novita/dispositivo-di-circolazione-temporaneo-in-via-pietrarsa-per-i-mercatini-di-natale-od-2048-2026",
+      "tipo": "Nuovo Bando o Avviso",
+      "scadenza": "scadenza: 06 Gennaio 2027 Tempo di lettura: 1 min Condividi Facebook Twitter Linkedin Whatsapp Ved",
+      "sintesi": "Dispositivo di circolazione temporaneo in via Pietrarsa per i mercatini di Natale 2026 Dettagli della notizia Dal 28 novembre 2026 fino al 6 gennaio 2027, secondo il calendario indicato Data pubblicazione: 23 Novembre 2026 Data scadenza: 06...",
+      "numPdf": 1,
+      "elencoPdf": "O.D. n. 2048 del 23/11/2026 .PDF",
+      "pdfList": [
+        {
+          "nome": "O.D. n. 2048 del 23/11/2026 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/allegato1795427239.pdf"
+        }
+      ],
+      "hash": "55cebb219a0cd12372551b925c9652ce",
+      "stato": "NUOVO",
+      "dataPubblicazione": "23/11/2026 12.17",
+      "ultimaModifica": "23/11/2026 12.42",
+      "numModifiche": 1,
+      "cronologiaModifiche": "1) 23/11/2026 12.42 - Aggiornamento o rettifica gia segnalata sul sito"
+    },
+    {
+      "dataRilevamento": "23/11/2026 23.34",
+      "provincia": "NA",
+      "comune": "Napoli",
+      "sezione": "Municipalita 4",
+      "titolo": "Avviso pubblico per l’assegnazione dei posteggi destinati alla manifestazione “Mercatini di Natale 2026” nel territorio della Municipalità 4",
+      "url": "https://www.comune.napoli.it/novita/avviso-pubblico-per-lassegnazione-dei-posteggi-destinati-alla-manifestazione-mercatini-di-natale-2026-nel-territorio-della-municipalita-4",
+      "tipo": "Nuovo Bando o Avviso",
+      "scadenza": "Scadenza: entro le ore 23:59 del giorno lunedì 30 novembre 2026 Data pubblicazione: 17 Novembre 20",
+      "sintesi": "Avviso pubblico per l’assegnazione dei posteggi destinati alla manifestazione “Mercatini di Natale 2026” nel territorio della Municipalità 4 Dettagli della notizia Scadenza: entro le ore 23:59 del giorno lunedì 30 novembre 2026 Data pubblic...",
+      "numPdf": 9,
+      "elencoPdf": "Disposizione Dirigenziale n. 130 del 13/11/2026 I1541_13112026_130 - Approvazione avviso .PDF | Avviso pubblico Mercatini di Natale nella Municipalità 4 .PDF | Modello istanza per singolo operatore .PDF | Modello istanza per organismi collettivi .PDF | Modello dichiarazione soci .PDF | Modello dichiarazioni espositori .PDF | Modello elenco operatori .PDF | Planimetrie dei siti .PDF | Patto d’integrità .PDF",
+      "pdfList": [
+        {
+          "nome": "Disposizione Dirigenziale n. 130 del 13/11/2026 I1541_13112026_130 - Approvazione avviso .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/I1541_13112026_130_signed.pdf"
+        },
+        {
+          "nome": "Avviso pubblico Mercatini di Natale nella Municipalità 4 .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Bando-Pubblico-Hobbisti-_rev.2.1_signed.pdf"
+        },
+        {
+          "nome": "Modello istanza per singolo operatore .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD_MN4_26_ISTANZA_SINGOLA.pdf"
+        },
+        {
+          "nome": "Modello istanza per organismi collettivi .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD_MN4_26_ISTANZA_COLLETTIVA.pdf"
+        },
+        {
+          "nome": "Modello dichiarazione soci .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD_MN4_26_DICHIARAZIONI_AMMINISTRATORI_SOCI.pdf"
+        },
+        {
+          "nome": "Modello dichiarazioni espositori .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD_MN4_26_DICHIARAZIONI_ESPOSITORI.pdf"
+        },
+        {
+          "nome": "Modello elenco operatori .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/MOD_MN4_26_ELENCO_OPERATORI_SOCIETA_ASSOCIAZIONI.pdf"
+        },
+        {
+          "nome": "Planimetrie dei siti .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/PLANIMETRIE-MERCATINI-DI-NATALE-2026.pdf"
+        },
+        {
+          "nome": "Patto d’integrità .PDF",
+          "url": "https://static-www.comune.napoli.it/wp-content/uploads/2026/11/Patto_di_integrita_MERCATINI_DI_NATALE.pdf"
+        }
+      ],
+      "hash": "318b4af33c8ff0a97f2f3bea64b5c4bb",
+      "stato": "NUOVO",
+      "dataPubblicazione": "17/11/2026 10.00",
+      "ultimaModifica": "Nessuna modifica rilevata",
+      "numModifiche": 0,
+      "cronologiaModifiche": ""
+    }
+  ]
 }
